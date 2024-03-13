@@ -8,9 +8,9 @@ import java.util.Date
 data class Note(
     @PrimaryKey(autoGenerate = true)
     val noteId: Int = 0,
-    val title: String,
-    val content: String,
-    val isMarked: Boolean,
-    val createdDate: Date,
-    val reminderDate: Date,
+    val title: String = "",
+    val content: String = "",
+    val isMarked: Boolean = false,
+    val createdDate: Date = Date(),
+    val reminderDate: Date = Date(),
 )

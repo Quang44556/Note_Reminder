@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Note Reminder</string>
     <string name="back_button">Back</string>
+    <string name="add_note">Add note</string>
+    <string name="note_detail_title" />
+    <string name="bookmark">Bookmark</string>
 </resources>

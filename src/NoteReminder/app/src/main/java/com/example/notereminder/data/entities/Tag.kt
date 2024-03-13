@@ -7,5 +7,5 @@ import androidx.room.PrimaryKey
 data class Tag(
     @PrimaryKey(autoGenerate = true)
     val tagId: Int = 0,
-    val name: String,
+    val name: String = "",
 )

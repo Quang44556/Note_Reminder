@@ -8,12 +8,15 @@ import com.example.notereminder.data.entities.NoteTagCrossRef
 import com.example.notereminder.data.entities.Tag
 
 data class NoteWithTags(
-    @Embedded
-    private val note: Note,
+    @Embedded val note: Note = Note(),
     @Relation(
         parentColumn = "noteId",
         entityColumn = "tagId",
-        associateBy = Junction(NoteTagCrossRef::class)
+        associateBy = Junction(
+            value = NoteTagCrossRef::class,
+            parentColumn = "noteReferenceId",
+            entityColumn = "tagReferenceId"
+        )
     )
-    val tags: List<Tag>,
+    val tags: List<Tag> = listOf()
 )

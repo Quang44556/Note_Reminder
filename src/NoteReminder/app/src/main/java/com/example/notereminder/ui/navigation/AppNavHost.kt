@@ -3,10 +3,14 @@ package com.example.notereminder.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.notereminder.ui.screens.HomeDestination
 import com.example.notereminder.ui.screens.HomeScreen
+import com.example.notereminder.ui.screens.NoteDetailDestination
+import com.example.notereminder.ui.screens.NoteDetailScreen
 
 @Composable
 fun AppNavHost(
@@ -19,7 +23,24 @@ fun AppNavHost(
         modifier = modifier
     ) {
         composable(route = HomeDestination.route) {
-            HomeScreen(modifier = Modifier)
+            HomeScreen(
+                modifier = Modifier,
+                navigateToNoteDetail = { navController.navigate("${NoteDetailDestination.route}/${it}") },
+                navController = navController,
+                onSeeDetailClicked = { navController.navigate("${NoteDetailDestination.route}/${it}") }
+            )
+        }
+        composable(
+            route = NoteDetailDestination.routeWithArgs,
+            arguments = listOf(navArgument(NoteDetailDestination.itemIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            NoteDetailScreen(
+                modifier = Modifier,
+                navigateBack = { navController.navigateUp() },
+                navController = navController,
+            )
         }
     }
 }

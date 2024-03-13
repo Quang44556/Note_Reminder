@@ -8,7 +8,8 @@ import androidx.room.ForeignKey
     foreignKeys = [
         ForeignKey(entity = Note::class, parentColumns = ["noteId"], childColumns = ["noteReferenceId"]),
         ForeignKey(entity = Tag::class, parentColumns = ["tagId"], childColumns = ["tagReferenceId"])
-    ]
+    ],
+    tableName = "noteTagCrossRef"
 )
 data class NoteTagCrossRef(
     val noteReferenceId: Int,

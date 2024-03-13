@@ -1,12 +1,13 @@
 package com.example.notereminder.data
 
+import com.example.notereminder.data.entities.Note
 import kotlinx.coroutines.flow.Flow
 
 interface NotesRepository {
-//    /**
-//     * Retrieve all the notes from the the given data source.
-//     */
-//    fun getAllItemsStream(): Flow<List<Note>>
+    fun getAllNotesWithTagsStream(): Flow<List<NoteWithTags>>
+    fun getNoteWithTagsStream(id: Int): Flow<NoteWithTags>
+    suspend fun updateNote(note: Note)
+    suspend fun updateNoteAndTags(noteWithTags: NoteWithTags)
 //
 //    /**
 //     * Retrieve an note from the given data source that matches with the [id].
@@ -23,8 +24,5 @@ interface NotesRepository {
 //     */
 //    suspend fun deleteItem(item: Note)
 //
-//    /**
-//     * Update note in the data source
-//     */
-//    suspend fun updateItem(item: Note)
+
 }
