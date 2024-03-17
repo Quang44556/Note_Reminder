@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.NotesRepository
 import com.example.notereminder.data.entities.Note
+import com.example.notereminder.data.entities.Tag
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,6 +28,12 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
     fun updateNote(noteWithTags: NoteWithTags) {
         viewModelScope.launch {
             notesRepository.updateNote(noteWithTags.note)
+        }
+    }
+
+    fun deleteTag(tag: Tag) {
+        viewModelScope.launch {
+            notesRepository.deleteTag(tag)
         }
     }
 

@@ -17,7 +17,6 @@ class AppDataContainer(private val context: Context) : AppContainer {
         LocalNotesRepository(
             AppDatabase.getDatabase(context).noteDao(),
             AppDatabase.getDatabase(context).tagDao(),
-            AppDatabase.getDatabase(context).noteTagCrossRefDao()
         )
     }
 }

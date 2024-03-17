@@ -9,10 +9,7 @@ interface NotesRepository {
     fun getNoteWithTagsStream(id: Int): Flow<NoteWithTags>
     suspend fun updateNote(note: Note)
     suspend fun updateNoteAndTags(noteWithTags: NoteWithTags)
-
     suspend fun insertNote(note: Note): Long
-    suspend fun insertNoteTagCrossRef(noteId: Long, tagId: Long)
-
     suspend fun insertTag(tag: Tag): Long
     suspend fun deleteTag(tag: Tag)
 }

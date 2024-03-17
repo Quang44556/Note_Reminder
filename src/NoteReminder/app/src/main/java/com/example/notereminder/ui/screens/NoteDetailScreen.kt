@@ -71,16 +71,16 @@ fun NoteDetailScreen(
                 title = stringResource(id = NoteDetailDestination.titleRes),
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = navigateBack,
-                onBookMarkClicked = viewModel::updateNoteWithTags,
+                onBookMarkClicked = viewModel::updateNote,
                 onAddTagClicked = viewModel::updateShowingDialog
             )
         },
     ) { innerPadding ->
         NoteDetailBody(
             noteWithTags = uiState.noteWithTags,
-            onTextFieldChange = viewModel::updateNoteWithTags,
+            onTextFieldChange = viewModel::updateNote,
             modifier = Modifier.padding(innerPadding),
-            onClearTagClicked = {}
+            onClearTagClicked = viewModel::updateTagsInNote
         )
     }
 }
@@ -114,7 +114,10 @@ fun NoteDetailTopAppBar(
                 noteWithTags = noteWithTags,
                 onBookMarkClicked = onBookMarkClicked
             )
-            IconButton(onClick = onAddTagClicked) {
+            IconButton(
+                onClick = onAddTagClicked,
+                enabled = noteWithTags.note.noteId != 0L
+            ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Search"

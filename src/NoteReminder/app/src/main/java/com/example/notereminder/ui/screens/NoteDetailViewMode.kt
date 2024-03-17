@@ -36,7 +36,7 @@ class NoteDetailViewMode(
         }
     }
 
-    fun updateNoteWithTags(noteWithTags: NoteWithTags) {
+    fun updateNote(noteWithTags: NoteWithTags) {
         noteDetailUiState = NoteDetailUiState(
             noteWithTags = NoteWithTags(
                 note = noteWithTags.note,
@@ -65,24 +65,31 @@ class NoteDetailViewMode(
     }
 
     fun insertTag(tag: Tag) {
-        noteDetailUiState.noteWithTags.tags += Tag(name = tag.name)
+        tag.noteBelongedToId = noteDetailUiState.noteWithTags.note.noteId
+
+        noteDetailUiState.noteWithTags.tags += Tag(
+            name = tag.name,
+            noteBelongedToId = noteDetailUiState.noteWithTags.note.noteId
+        )
         val size = noteDetailUiState.noteWithTags.tags.size
 
         viewModelScope.launch {
             noteDetailUiState.noteWithTags.tags[size - 1].tagId = notesRepository.insertTag(tag)
-
-            insertNoteTagCrossRef(
-                noteDetailUiState.noteWithTags.note.noteId,
-                noteDetailUiState.noteWithTags.tags[size - 1].tagId
-            )
         }
     }
 
-    private suspend fun insertNoteTagCrossRef(noteId: Long, tagId: Long) {
-        notesRepository.insertNoteTagCrossRef(noteId = noteId, tagId = tagId)
+    fun updateTagsInNote(tag: Tag) {
+        noteDetailUiState = NoteDetailUiState(
+            noteWithTags = NoteWithTags(
+                note = noteDetailUiState.noteWithTags.note,
+                tags = noteDetailUiState.noteWithTags.tags.toMutableList().apply { remove(tag) }
+            )
+        )
+
+        deleteTag(tag)
     }
 
-    fun deleteTag(tag: Tag) {
+    private fun deleteTag(tag: Tag) {
         viewModelScope.launch {
             notesRepository.deleteTag(tag)
         }

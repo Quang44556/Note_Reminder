@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Tag(
     @PrimaryKey(autoGenerate = true)
     var tagId: Long = 0,
+    var noteBelongedToId: Long = 0,
     val name: String = "",
 )

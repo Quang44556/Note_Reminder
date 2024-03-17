@@ -6,14 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.notereminder.data.daos.NoteDao
-import com.example.notereminder.data.daos.NoteTagCrossRefDao
 import com.example.notereminder.data.daos.TagDao
 import com.example.notereminder.data.entities.Note
-import com.example.notereminder.data.entities.NoteTagCrossRef
 import com.example.notereminder.data.entities.Tag
 
 @Database(
-    entities = [Note::class, Tag::class, NoteTagCrossRef::class],
+    entities = [Note::class, Tag::class],
     version = 1,
     exportSchema = false
 )
@@ -22,7 +20,6 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun noteDao(): NoteDao
     abstract fun tagDao(): TagDao
-    abstract fun noteTagCrossRefDao(): NoteTagCrossRefDao
 
     companion object {
         @Volatile

@@ -95,7 +95,8 @@ fun HomeScreen(
             noteWithTagsList = homeUiState.noteWithTagsList,
             modifier = Modifier.padding(innerPadding),
             onSeeDetailClicked = onSeeDetailClicked,
-            onBookMarkClicked = viewModel::updateNote
+            onBookMarkClicked = viewModel::updateNote,
+            onClearTagClicked = viewModel::deleteTag
         )
     }
 }
@@ -143,13 +144,15 @@ fun HomeBody(
     noteWithTagsList: List<NoteWithTags>,
     onSeeDetailClicked: (Long) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
+    onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NoteWithTagsList(
         noteWithTagsList = noteWithTagsList,
         onItemClicked = { onSeeDetailClicked(it.note.noteId) },
         onBookMarkClicked = { onBookMarkClicked(it) },
-        modifier = modifier
+        modifier = modifier,
+        onClearTagClicked = onClearTagClicked
     )
 }
 
@@ -158,6 +161,7 @@ fun NoteWithTagsList(
     noteWithTagsList: List<NoteWithTags>,
     onItemClicked: (NoteWithTags) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
+    onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // sorted list
@@ -183,6 +187,7 @@ fun NoteWithTagsList(
                         top = 5.dp,
                         bottom = 5.dp
                     ),
+                onClearTagClicked = onClearTagClicked
             )
         }
     }
@@ -192,6 +197,7 @@ fun NoteWithTagsList(
 fun NoteItem(
     noteWithTags: NoteWithTags,
     onBookMarkClicked: (NoteWithTags) -> Unit,
+    onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // format created date and reminder date
@@ -234,7 +240,7 @@ fun NoteItem(
             )
             TagsListInNote(
                 tags = noteWithTags.tags,
-                onClearTagClicked = {},
+                onClearTagClicked = onClearTagClicked,
             )
             Row {
                 Text(

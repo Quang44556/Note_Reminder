@@ -25,7 +25,7 @@ val item2: NoteWithTags = NoteWithTags(
         createdDate = Date(),
         reminderDate = Date(),
     ),
-    tags = mutableListOf(Tag(1, "12345"), Tag(2, "2"))
+    tags = mutableListOf(Tag(1, 1, "12345"), Tag(2, 1, "2"))
 )
 
 val item3: NoteWithTags = NoteWithTags(
@@ -38,12 +38,12 @@ val item3: NoteWithTags = NoteWithTags(
         reminderDate = Date(),
     ),
     tags = mutableListOf(
-        Tag(1, "1"),
-        Tag(2, "2dsddsdf222"),
-        Tag(3, "a346aadasdasassffsds43"),
-        Tag(4, "sas2dffsdfsdfsd2"),
-        Tag(5, "??saaas??")
+        Tag(1, 1, "1"),
+        Tag(2, 1, "2dsddsdf222"),
+        Tag(3, 2, "a346aadasdasassffsds43"),
+        Tag(4, 2, "sas2dffsdfsdfsd2"),
+        Tag(5, 1, "??saaas??")
     )
 )
 
-val tag1: Tag = Tag(1, "123")
+val tag1: Tag = Tag(1, 1, "123")

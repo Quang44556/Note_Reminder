@@ -2,8 +2,12 @@ package com.example.notereminder.data.daos
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.entities.Note
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
@@ -12,4 +16,12 @@ interface NoteDao {
 
     @Insert
     suspend fun insertNote(note: Note): Long
+
+    @Transaction
+    @Query("SELECT * FROM notes")
+    fun getAllNotesWithTags(): Flow<List<NoteWithTags>>
+
+    @Transaction
+    @Query("SELECT * FROM notes WHERE noteId = :id")
+    fun getNoteWithTags(id: Int): Flow<NoteWithTags>
 }
