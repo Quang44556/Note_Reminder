@@ -4,4 +4,10 @@
     <string name="add_note">Add note</string>
     <string name="note_detail_title" />
     <string name="bookmark">Bookmark</string>
+    <string name="clearTag">Clear tag</string>
+    <string name="hintTitle">Title</string>
+    <string name="hintContent">Content</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="add_tag_title">Add tag</string>
 </resources>

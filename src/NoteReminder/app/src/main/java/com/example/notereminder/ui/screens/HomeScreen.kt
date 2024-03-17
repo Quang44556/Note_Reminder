@@ -1,6 +1,5 @@
 package com.example.notereminder.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -16,16 +15,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,13 +45,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.notereminder.MyTopAppBar
+import com.example.notereminder.DEFAULT_ID
 import com.example.notereminder.R
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.entities.Tag
 import com.example.notereminder.ui.AppViewModelProvider
 import com.example.notereminder.ui.navigation.NavigationDestination
 import java.text.DateFormat
+import java.util.Date
 
 
 object HomeDestination : NavigationDestination {
@@ -54,9 +62,9 @@ object HomeDestination : NavigationDestination {
 
 @Composable
 fun HomeScreen(
-    navigateToNoteDetail: (Int) -> Unit,
+    navigateToNoteDetail: (Long) -> Unit,
     navController: NavHostController,
-    onSeeDetailClicked: (Int) -> Unit,
+    onSeeDetailClicked: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
@@ -65,15 +73,14 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            MyTopAppBar(
+            HomeTopAppBar(
                 title = stringResource(id = HomeDestination.titleRes),
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navController = navController,
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigateToNoteDetail(1) },
+                onClick = { navigateToNoteDetail(DEFAULT_ID) },
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.clip(shape = CircleShape)
             ) {
@@ -93,10 +100,48 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopAppBar(
+    title: String,
+    canNavigateBack: Boolean,
+    modifier: Modifier = Modifier,
+    navigateUp: () -> Unit = {}
+) {
+    TopAppBar(
+        title = { Text(title, style = MaterialTheme.typography.displayLarge) },
+        modifier = modifier,
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button)
+                    )
+                }
+            }
+        },
+        actions = {
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search"
+                )
+            }
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Calendar"
+                )
+            }
+        }
+    )
+}
+
 @Composable
 fun HomeBody(
     noteWithTagsList: List<NoteWithTags>,
-    onSeeDetailClicked: (Int) -> Unit,
+    onSeeDetailClicked: (Long) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -115,13 +160,23 @@ fun NoteWithTagsList(
     onBookMarkClicked: (NoteWithTags) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // sorted list
+    // marked notes is on top of list
+    // among marked notes, notes having reminder date close to current date is on top
+    // among notes that have reminder date equal to one another, notes having created date close to current date is on top
+    val sortedList = noteWithTagsList.sortedWith(
+        compareByDescending<NoteWithTags> { it.note.isMarked }
+            .thenByDescending { noteWithTags -> noteWithTags.note.reminderDate.takeIf { it > Date() } }
+            .thenByDescending { it.note.createdDate }
+    )
+
     LazyColumn(modifier = modifier) {
-        items(noteWithTagsList.size) { index ->
+        items(sortedList.size) { index ->
             NoteItem(
-                noteWithTags = noteWithTagsList[index],
+                noteWithTags = sortedList[index],
                 onBookMarkClicked = { onBookMarkClicked(it) },
                 modifier = Modifier
-                    .clickable { onItemClicked(noteWithTagsList[index]) }
+                    .clickable { onItemClicked(sortedList[index]) }
                     .padding(
                         start = 10.dp,
                         end = 10.dp,
@@ -161,7 +216,7 @@ fun NoteItem(
                     maxLines = 1,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                BookMarkInNote(
+                BookMarkIcon(
                     noteWithTags = noteWithTags,
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -177,7 +232,10 @@ fun NoteItem(
                     .padding(all = 5.dp)
                     .fillMaxWidth()
             )
-            TagsListInNote(noteWithTags.tags)
+            TagsListInNote(
+                tags = noteWithTags.tags,
+                onClearTagClicked = {},
+            )
             Row {
                 Text(
                     text = formattedCreatedDate,
@@ -196,12 +254,12 @@ fun NoteItem(
 }
 
 @Composable
-fun BookMarkInNote(
+fun BookMarkIcon(
     noteWithTags: NoteWithTags,
     onBookMarkClicked: (NoteWithTags) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Image(
+    Icon(
         painter = if (noteWithTags.note.isMarked) {
             painterResource(id = R.drawable.bookmarked)
         } else {
@@ -224,30 +282,70 @@ fun BookMarkInNote(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TagsListInNote(tags: List<Tag>, modifier: Modifier = Modifier) {
+fun TagsListInNote(
+    tags: List<Tag>,
+    onClearTagClicked: (Tag) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     FlowRow(modifier = modifier) {
-        tags.forEach { tag -> TagItem(tag = tag) }
+        tags.forEach { tag ->
+            TagItem(
+                tag = tag,
+                onClearTagClicked = { onClearTagClicked(it) },
+            )
+        }
     }
 }
 
 @Composable
-fun TagItem(tag: Tag, modifier: Modifier = Modifier) {
+fun TagItem(
+    tag: Tag,
+    onClearTagClicked: (Tag) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Card(
         modifier = modifier
             .background(Color.Transparent)
             .padding(4.dp)
     ) {
-        Text(
-            text = tag.name,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
+        Row(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.inversePrimary)
-                .padding(4.dp),
-            textAlign = TextAlign.Center
-        )
+        ) {
+            Text(
+                text = tag.name,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.inversePrimary)
+                    .padding(4.dp),
+                textAlign = TextAlign.Center
+            )
+            Icon(
+                imageVector = Icons.Default.Clear,
+                contentDescription = stringResource(id = R.string.clearTag),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.inversePrimary)
+                    .align(alignment = Alignment.CenterVertically)
+                    .padding(4.dp)
+                    .size(15.dp)
+                    .clickable { onClearTagClicked(tag) },
+            )
+        }
     }
 }
+
+//@Preview
+//@Composable
+//fun TagPreview() {
+//    TagItem(tag1)
+//}
+
+//@Preview
+//@Composable
+//fun TagListPreview() {
+//    TagsListInNote(tags = listOf(tag1, tag1, tag1))
+//}
 
 //@Preview
 //@Composable

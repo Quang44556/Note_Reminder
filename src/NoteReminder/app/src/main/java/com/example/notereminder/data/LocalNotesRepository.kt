@@ -4,6 +4,7 @@ import com.example.notereminder.data.daos.NoteDao
 import com.example.notereminder.data.daos.NoteTagCrossRefDao
 import com.example.notereminder.data.daos.TagDao
 import com.example.notereminder.data.entities.Note
+import com.example.notereminder.data.entities.Tag
 import kotlinx.coroutines.flow.Flow
 
 class LocalNotesRepository(
@@ -26,12 +27,12 @@ class LocalNotesRepository(
         }
         //noteTagCrossRefDao.updateTagsInNote()
     }
-//
-//    override fun getItemStream(id: Int): Flow<Note?> = noteDao.getItem(id)
-//
-//    override suspend fun insertItem(item: Note) = noteDao.insert(item)
-//
-//    override suspend fun deleteItem(item: Note) = noteDao.delete(item)
-//
-//    override suspend fun updateItem(item: Note) = noteDao.update(item)
+
+    override suspend fun insertNote(note: Note): Long = noteDao.insertNote(note)
+    override suspend fun insertNoteTagCrossRef(noteId: Long, tagId: Long) =
+        noteTagCrossRefDao.insert(noteId, tagId)
+
+    override suspend fun insertTag(tag: Tag) = tagDao.insertTag(tag)
+
+    override suspend fun deleteTag(tag: Tag) = tagDao.deleteTag(tag)
 }

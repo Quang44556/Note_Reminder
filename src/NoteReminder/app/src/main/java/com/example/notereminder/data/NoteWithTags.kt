@@ -18,5 +18,5 @@ data class NoteWithTags(
             entityColumn = "tagReferenceId"
         )
     )
-    val tags: List<Tag> = listOf()
+    val tags: MutableList<Tag> = mutableListOf()
 )
