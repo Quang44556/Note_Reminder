@@ -12,4 +12,6 @@ interface NotesRepository {
     suspend fun insertNote(note: Note): Long
     suspend fun insertTag(tag: Tag): Long
     suspend fun deleteTag(tag: Tag)
+    suspend fun deleteNode(note: Note)
+    suspend fun deleteNoteWithTags(noteWithTags: NoteWithTags)
 }

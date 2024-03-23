@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
@@ -42,7 +43,6 @@ import com.example.notereminder.ui.navigation.NavigationDestination
 
 object NoteDetailDestination : NavigationDestination {
     override val route = "note_detail"
-    override val titleRes = R.string.note_detail_title
     const val itemIdArg = "itemId"
     val routeWithArgs = "$route/{$itemIdArg}"
 }
@@ -56,10 +56,25 @@ fun NoteDetailScreen(
 ) {
     val uiState = viewModel.noteDetailUiState
 
-    if (uiState.isShowingDialog) {
-        MyDialog(
-            onDismiss = viewModel::updateShowingDialog,
+    if (uiState.isShowingDialogAddTag) {
+        DialogAddTag(
+            onDismiss = viewModel::updateShowingDialogAddTag,
             onConfirm = viewModel::insertTag
+        )
+    }
+
+    if (uiState.isShowingDialogSaveNote) {
+        MyAlertDialog(
+            textRes = R.string.title_dialog_save_note,
+            onDismiss = {
+                viewModel.updateShowingDialogSaveNote()
+                navigateBack()
+            },
+            onConfirm = {
+                viewModel.updateShowingDialogSaveNote()
+                viewModel.updateNoteWithTags()
+                navigateBack()
+            }
         )
     }
 
@@ -67,18 +82,32 @@ fun NoteDetailScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             NoteDetailTopAppBar(
-                noteWithTags = uiState.noteWithTags,
-                title = stringResource(id = NoteDetailDestination.titleRes),
+                uiState = uiState,
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = navigateBack,
-                onBookMarkClicked = viewModel::updateNote,
-                onAddTagClicked = viewModel::updateShowingDialog
+                navigateUp = {
+                    if (uiState.noteWithTags.note.title == "" && uiState.noteWithTags.note.content == "") {
+                        viewModel.deleteNoteWithTags()
+                        navigateBack()
+                    } else {
+                        if (uiState.isShowingCheckIcon) {
+                            viewModel.updateShowingDialogSaveNote()
+                        } else {
+                            navigateBack()
+                        }
+                    }
+                },
+                onBookMarkClicked = viewModel::updateNoteUiState,
+                onAddTagClicked = viewModel::updateShowingDialogAddTag,
+                onDeleteClicked = viewModel::updateShowingDialogDeleteNote,
+                onSaveClicked = {
+                    viewModel.updateNoteWithTags()
+                }
             )
         },
     ) { innerPadding ->
         NoteDetailBody(
             noteWithTags = uiState.noteWithTags,
-            onTextFieldChange = viewModel::updateNote,
+            onTextFieldChange = viewModel::updateNoteUiState,
             modifier = Modifier.padding(innerPadding),
             onClearTagClicked = viewModel::updateTagsInNote
         )
@@ -90,14 +119,20 @@ fun NoteDetailScreen(
 fun NoteDetailTopAppBar(
     onBookMarkClicked: (NoteWithTags) -> Unit,
     onAddTagClicked: () -> Unit,
-    noteWithTags: NoteWithTags,
-    title: String,
+    onDeleteClicked: () -> Unit,
+    onSaveClicked: () -> Unit,
+    uiState: NoteDetailUiState,
     canNavigateBack: Boolean,
     modifier: Modifier = Modifier,
     navigateUp: () -> Unit = {}
 ) {
     TopAppBar(
-        title = { Text(title, style = MaterialTheme.typography.displayLarge) },
+        title = {
+            Text(
+                stringResource(id = R.string.note_detail_title),
+                style = MaterialTheme.typography.displayLarge
+            )
+        },
         modifier = modifier,
         navigationIcon = {
             if (canNavigateBack) {
@@ -111,16 +146,16 @@ fun NoteDetailTopAppBar(
         },
         actions = {
             BookMarkIcon(
-                noteWithTags = noteWithTags,
-                onBookMarkClicked = onBookMarkClicked
+                noteWithTags = uiState.noteWithTags,
+                onBookMarkClicked = onBookMarkClicked,
             )
             IconButton(
                 onClick = onAddTagClicked,
-                enabled = noteWithTags.note.noteId != 0L
+                enabled = uiState.noteWithTags.note.noteId != 0L
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Search"
+                    contentDescription = stringResource(id = R.string.description_add_tag_icon)
                 )
             }
             IconButton(onClick = {}) {
@@ -129,11 +164,19 @@ fun NoteDetailTopAppBar(
                     contentDescription = "Search"
                 )
             }
-            IconButton(onClick = {}) {
+            IconButton(onClick = onDeleteClicked) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Calendar"
+                    contentDescription = stringResource(id = R.string.description_delete_note_icon)
                 )
+            }
+            if (uiState.isShowingCheckIcon) {
+                IconButton(onClick = onSaveClicked) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = stringResource(id = R.string.description_save_icon),
+                    )
+                }
             }
         }
     )
@@ -196,7 +239,7 @@ fun NoteDetailBody(
 }
 
 @Composable
-fun MyDialog(
+fun DialogAddTag(
     onDismiss: () -> Unit,
     onConfirm: (Tag) -> Unit
 ) {
@@ -233,6 +276,34 @@ fun MyDialog(
                 onClick = onDismiss
             ) {
                 Text(text = stringResource(id = R.string.dialog_cancel))
+            }
+        }
+    )
+}
+
+@Composable
+fun MyAlertDialog(
+    textRes: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Text(text = stringResource(id = textRes))
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm
+            ) {
+                Text(stringResource(id = R.string.dialog_yes))
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss
+            ) {
+                Text(text = stringResource(id = R.string.dialog_no))
             }
         }
     )

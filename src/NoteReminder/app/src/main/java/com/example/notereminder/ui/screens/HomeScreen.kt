@@ -57,7 +57,6 @@ import java.util.Date
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
-    override val titleRes = R.string.app_name
 }
 
 @Composable
@@ -74,7 +73,7 @@ fun HomeScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             HomeTopAppBar(
-                title = stringResource(id = HomeDestination.titleRes),
+                title = stringResource(id = R.string.app_name),
                 canNavigateBack = navController.previousBackStackEntry != null,
             )
         },
@@ -263,7 +262,7 @@ fun NoteItem(
 fun BookMarkIcon(
     noteWithTags: NoteWithTags,
     onBookMarkClicked: (NoteWithTags) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Icon(
         painter = if (noteWithTags.note.isMarked) {

@@ -1,6 +1,7 @@
 package com.example.notereminder.data.daos
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -24,4 +25,7 @@ interface NoteDao {
     @Transaction
     @Query("SELECT * FROM notes WHERE noteId = :id")
     fun getNoteWithTags(id: Int): Flow<NoteWithTags>
+
+    @Delete
+    suspend fun deleteNode(note: Note)
 }

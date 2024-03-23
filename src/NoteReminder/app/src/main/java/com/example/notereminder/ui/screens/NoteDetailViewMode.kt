@@ -36,32 +36,66 @@ class NoteDetailViewMode(
         }
     }
 
-    fun updateNote(noteWithTags: NoteWithTags) {
+    fun updateNoteUiState(noteWithTags: NoteWithTags) {
         noteDetailUiState = NoteDetailUiState(
             noteWithTags = NoteWithTags(
                 note = noteWithTags.note,
                 tags = noteWithTags.tags
-            )
+            ),
+            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon
         )
-        insertOrUpdateDatabase(noteWithTags)
+
+        if (noteDetailUiState.noteWithTags.note.noteId == DEFAULT_ID) {
+            insertNoteWithTags()
+        }
+        if (!noteDetailUiState.isShowingCheckIcon) {
+            updateShowingCheckIcon()
+        }
     }
 
-    fun updateShowingDialog() {
+    fun updateShowingDialogAddTag() {
         noteDetailUiState = NoteDetailUiState(
             noteWithTags = noteDetailUiState.noteWithTags,
-            isShowingDialog = !noteDetailUiState.isShowingDialog
+            isShowingDialogAddTag = !noteDetailUiState.isShowingDialogAddTag,
+            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
         )
     }
 
-    private fun insertOrUpdateDatabase(noteWithTags: NoteWithTags) {
+    fun updateShowingDialogDeleteNote() {
+        noteDetailUiState = NoteDetailUiState(
+            noteWithTags = noteDetailUiState.noteWithTags,
+            isShowingDialogDeleteNote = !noteDetailUiState.isShowingDialogDeleteNote,
+            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
+        )
+    }
+
+    fun updateShowingDialogSaveNote() {
+        noteDetailUiState = NoteDetailUiState(
+            noteWithTags = noteDetailUiState.noteWithTags,
+            isShowingDialogSaveNote = !noteDetailUiState.isShowingDialogSaveNote,
+            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
+        )
+    }
+
+    private fun updateShowingCheckIcon() {
+        noteDetailUiState = NoteDetailUiState(
+            noteWithTags = noteDetailUiState.noteWithTags,
+            isShowingCheckIcon = !noteDetailUiState.isShowingCheckIcon,
+        )
+    }
+
+    private fun insertNoteWithTags() {
         viewModelScope.launch {
-            if (noteWithTags.note.noteId == DEFAULT_ID) {
-                noteDetailUiState.noteWithTags.note.noteId =
-                    notesRepository.insertNote(noteWithTags.note)
-            } else {
-                notesRepository.updateNoteAndTags(noteWithTags)
-            }
+            noteDetailUiState.noteWithTags.note.noteId =
+                notesRepository.insertNote(noteDetailUiState.noteWithTags.note)
         }
+    }
+
+    fun updateNoteWithTags() {
+        viewModelScope.launch {
+            notesRepository.updateNoteAndTags(noteDetailUiState.noteWithTags)
+        }
+        updateShowingCheckIcon()
     }
 
     fun insertTag(tag: Tag) {
@@ -83,7 +117,8 @@ class NoteDetailViewMode(
             noteWithTags = NoteWithTags(
                 note = noteDetailUiState.noteWithTags.note,
                 tags = noteDetailUiState.noteWithTags.tags.toMutableList().apply { remove(tag) }
-            )
+            ),
+            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
         )
 
         deleteTag(tag)
@@ -94,9 +129,18 @@ class NoteDetailViewMode(
             notesRepository.deleteTag(tag)
         }
     }
+
+    fun deleteNoteWithTags() {
+        viewModelScope.launch {
+            notesRepository.deleteNoteWithTags(noteDetailUiState.noteWithTags)
+        }
+    }
 }
 
 data class NoteDetailUiState(
     val noteWithTags: NoteWithTags = NoteWithTags(),
-    val isShowingDialog: Boolean = false,
+    val isShowingDialogAddTag: Boolean = false,
+    val isShowingDialogDeleteNote: Boolean = false,
+    val isShowingCheckIcon: Boolean = false,
+    val isShowingDialogSaveNote: Boolean = false,
 )

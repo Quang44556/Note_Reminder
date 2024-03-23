@@ -10,4 +10,11 @@
     <string name="dialog_ok">OK</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="add_tag_title">Add tag</string>
+    <string name="title_dialog_delete_note">Are you sure you want to delete this note ?</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_no">No</string>
+    <string name="description_add_tag_icon">Add a tag</string>
+    <string name="description_delete_note_icon">Delete current note</string>
+    <string name="description_save_icon">save title and content of current note to database</string>
+    <string name="title_dialog_save_note">Do you want to save this note ?</string>
 </resources>

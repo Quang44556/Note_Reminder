@@ -23,7 +23,6 @@ class LocalNotesRepository(
         noteWithTags.tags.forEach {
             tagDao.updateTag(it)
         }
-        //noteTagCrossRefDao.updateTagsInNote()
     }
 
     override suspend fun insertNote(note: Note): Long = noteDao.insertNote(note)
@@ -31,4 +30,12 @@ class LocalNotesRepository(
     override suspend fun insertTag(tag: Tag) = tagDao.insertTag(tag)
 
     override suspend fun deleteTag(tag: Tag) = tagDao.deleteTag(tag)
+    override suspend fun deleteNode(note: Note) = noteDao.deleteNode(note)
+
+    override suspend fun deleteNoteWithTags(noteWithTags: NoteWithTags) {
+        noteWithTags.tags.forEach {
+            deleteTag(it)
+        }
+        deleteNode(noteWithTags.note)
+    }
 }
