@@ -1,5 +1,6 @@
 package com.example.notereminder.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,8 +44,8 @@ import com.example.notereminder.ui.navigation.NavigationDestination
 
 object NoteDetailDestination : NavigationDestination {
     override val route = "note_detail"
-    const val itemIdArg = "itemId"
-    val routeWithArgs = "$route/{$itemIdArg}"
+    const val ITEM_ID_ARG = "itemId"
+    val routeWithArgs = "$route/{$ITEM_ID_ARG}"
 }
 
 @Composable
@@ -56,13 +57,15 @@ fun NoteDetailScreen(
 ) {
     val uiState = viewModel.noteDetailUiState
 
+    // dialog to add tag
     if (uiState.isShowingDialogAddTag) {
         DialogAddTag(
             onDismiss = viewModel::updateShowingDialogAddTag,
-            onConfirm = viewModel::insertTag
+            onConfirm = viewModel::insertTagToUiState
         )
     }
 
+    // dialog remind to save not
     if (uiState.isShowingDialogSaveNote) {
         MyAlertDialog(
             textRes = R.string.title_dialog_save_note,
@@ -72,9 +75,19 @@ fun NoteDetailScreen(
             },
             onConfirm = {
                 viewModel.updateShowingDialogSaveNote()
-                viewModel.updateNoteWithTags()
+                viewModel.insertOrUpdateNoteWithTags()
                 navigateBack()
             }
+        )
+    }
+
+    // user press back in phone
+    BackHandler(enabled = true) {
+        handleBackPress(
+            uiState = uiState,
+            navigateBack = navigateBack,
+            deleteNote = viewModel::deleteNoteWithTags,
+            updateShowingDialogSaveNote = viewModel::updateShowingDialogSaveNote
         )
     }
 
@@ -85,32 +98,52 @@ fun NoteDetailScreen(
                 uiState = uiState,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = {
-                    if (uiState.noteWithTags.note.title == "" && uiState.noteWithTags.note.content == "") {
-                        viewModel.deleteNoteWithTags()
-                        navigateBack()
-                    } else {
-                        if (uiState.isShowingCheckIcon) {
-                            viewModel.updateShowingDialogSaveNote()
-                        } else {
-                            navigateBack()
-                        }
-                    }
+                    handleBackPress(
+                        uiState = uiState,
+                        navigateBack = navigateBack,
+                        deleteNote = viewModel::deleteNoteWithTags,
+                        updateShowingDialogSaveNote = viewModel::updateShowingDialogSaveNote
+                    )
                 },
-                onBookMarkClicked = viewModel::updateNoteUiState,
+                onBookMarkClicked = viewModel::updateNoteDetailUiState,
                 onAddTagClicked = viewModel::updateShowingDialogAddTag,
                 onDeleteClicked = viewModel::updateShowingDialogDeleteNote,
                 onSaveClicked = {
-                    viewModel.updateNoteWithTags()
+                    viewModel.insertOrUpdateNoteWithTags()
                 }
             )
         },
     ) { innerPadding ->
         NoteDetailBody(
             noteWithTags = uiState.noteWithTags,
-            onTextFieldChange = viewModel::updateNoteUiState,
+            onTextFieldChange = viewModel::updateNoteDetailUiState,
             modifier = Modifier.padding(innerPadding),
-            onClearTagClicked = viewModel::updateTagsInNote
+            onClearTagClicked = viewModel::deleteTagInUiState
         )
+    }
+}
+
+/**
+ * handle when user click back press or back icon in toolbar
+ */
+private fun handleBackPress(
+    uiState: NoteDetailUiState,
+    navigateBack: () -> Unit,
+    deleteNote: () -> Unit,
+    updateShowingDialogSaveNote: () -> Unit,
+) {
+    // delete note and navigate back if title and content of note is empty
+    if (uiState.noteWithTags.note.title == "" && uiState.noteWithTags.note.content == "") {
+        deleteNote()
+        navigateBack()
+    } else {
+        // if user has not already saved note, show dialog remind to save not
+        // otherwise, navigate back
+        if (uiState.isShowingCheckIcon) {
+            updateShowingDialogSaveNote()
+        } else {
+            navigateBack()
+        }
     }
 }
 
@@ -149,10 +182,7 @@ fun NoteDetailTopAppBar(
                 noteWithTags = uiState.noteWithTags,
                 onBookMarkClicked = onBookMarkClicked,
             )
-            IconButton(
-                onClick = onAddTagClicked,
-                enabled = uiState.noteWithTags.note.noteId != 0L
-            ) {
+            IconButton(onClick = onAddTagClicked) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(id = R.string.description_add_tag_icon)
@@ -265,7 +295,6 @@ fun DialogAddTag(
             Button(
                 onClick = {
                     onConfirm(Tag(name = text))
-                    onDismiss()
                 }
             ) {
                 Text(text = stringResource(id = R.string.dialog_ok))

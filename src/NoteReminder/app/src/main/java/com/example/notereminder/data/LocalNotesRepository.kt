@@ -18,6 +18,10 @@ class LocalNotesRepository(
 
     override suspend fun updateNote(note: Note) = noteDao.updateNote(note)
 
+    /**
+     * use [updateNote] to update [Note] in [NoteWithTags] in database
+     * then update each [Tag] in [NoteWithTags] in database
+     */
     override suspend fun updateNoteAndTags(noteWithTags: NoteWithTags) {
         updateNote(noteWithTags.note)
         noteWithTags.tags.forEach {
@@ -30,12 +34,16 @@ class LocalNotesRepository(
     override suspend fun insertTag(tag: Tag) = tagDao.insertTag(tag)
 
     override suspend fun deleteTag(tag: Tag) = tagDao.deleteTag(tag)
-    override suspend fun deleteNode(note: Note) = noteDao.deleteNode(note)
+    override suspend fun deleteNote(note: Note) = noteDao.deleteNode(note)
 
+    /**
+     * use [deleteTag] to delete each [Tag] in [NoteWithTags] from database
+     * then use [deleteNote] to delete [Note] in [NoteWithTags] from database
+     */
     override suspend fun deleteNoteWithTags(noteWithTags: NoteWithTags) {
         noteWithTags.tags.forEach {
             deleteTag(it)
         }
-        deleteNode(noteWithTags.note)
+        deleteNote(noteWithTags.note)
     }
 }

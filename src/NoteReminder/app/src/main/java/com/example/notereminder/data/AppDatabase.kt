@@ -10,6 +10,9 @@ import com.example.notereminder.data.daos.TagDao
 import com.example.notereminder.data.entities.Note
 import com.example.notereminder.data.entities.Tag
 
+/**
+ * Database class with a singleton Instance object.
+ */
 @Database(
     entities = [Note::class, Tag::class],
     version = 1,
@@ -17,14 +20,11 @@ import com.example.notereminder.data.entities.Tag
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun noteDao(): NoteDao
     abstract fun tagDao(): TagDao
-
     companion object {
         @Volatile
         private var Instance: AppDatabase? = null
-
         fun getDatabase(context: Context): AppDatabase {
             // if the Instance is not null, return it, otherwise create a new database instance.
             return Instance ?: synchronized(this) {

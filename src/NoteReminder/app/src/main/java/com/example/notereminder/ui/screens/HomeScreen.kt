@@ -32,7 +32,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -215,12 +214,12 @@ fun NoteItem(
                 Text(
                     text = noteWithTags.note.title,
                     modifier = Modifier
+                        .weight(1f)
                         .padding(all = 5.dp),
                     fontSize = 25.sp,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
-                Spacer(modifier = Modifier.weight(1f))
                 BookMarkIcon(
                     noteWithTags = noteWithTags,
                     modifier = Modifier
@@ -229,6 +228,7 @@ fun NoteItem(
                     onBookMarkClicked = onBookMarkClicked
                 )
             }
+
             Text(
                 text = noteWithTags.note.content,
                 overflow = TextOverflow.Ellipsis,

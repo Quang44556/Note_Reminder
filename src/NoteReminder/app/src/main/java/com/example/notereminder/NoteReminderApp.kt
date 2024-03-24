@@ -13,11 +13,17 @@ import com.example.notereminder.ui.screens.HomeScreen
 import com.example.notereminder.ui.screens.NoteDetailDestination
 import com.example.notereminder.ui.screens.NoteDetailScreen
 
+/**
+ * Top level composable that represents screens for the application.
+ */
 @Composable
 fun NoteReminderApp(navController: NavHostController = rememberNavController()) {
     AppNavHost(navController = navController)
 }
 
+/**
+ * Provides Navigation graph for the application.
+ */
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -38,7 +44,7 @@ fun AppNavHost(
         }
         composable(
             route = NoteDetailDestination.routeWithArgs,
-            arguments = listOf(navArgument(NoteDetailDestination.itemIdArg) {
+            arguments = listOf(navArgument(NoteDetailDestination.ITEM_ID_ARG) {
                 type = NavType.IntType
             })
         ) {
