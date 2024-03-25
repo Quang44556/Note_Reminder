@@ -39,7 +39,6 @@ fun AppNavHost(
                 modifier = Modifier,
                 navigateToNoteDetail = { navController.navigate("${NoteDetailDestination.route}/${it}") },
                 navController = navController,
-                onSeeDetailClicked = { navController.navigate("${NoteDetailDestination.route}/${it}") }
             )
         }
         composable(

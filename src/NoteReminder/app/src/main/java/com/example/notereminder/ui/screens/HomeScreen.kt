@@ -1,7 +1,10 @@
 package com.example.notereminder.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,11 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,11 +68,22 @@ object HomeDestination : NavigationDestination {
 fun HomeScreen(
     navigateToNoteDetail: (Long) -> Unit,
     navController: NavHostController,
-    onSeeDetailClicked: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val homeUiState by viewModel.homeUiState.collectAsState()
+
+    // if user choose delete selected notes, show dialog to ask again
+    if (homeUiState.isShowingDialogDeleteNotes) {
+        MyAlertDialog(
+            textRes = R.string.title_dialog_delete_notes,
+            onDismiss = viewModel::updateShowingDialogDeleteNotes,
+            onConfirm = {
+                viewModel.deleteSelectedNotes()
+                viewModel.updateShowingDialogDeleteNotes()
+            }
+        )
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -74,6 +91,9 @@ fun HomeScreen(
             HomeTopAppBar(
                 title = stringResource(id = R.string.app_name),
                 canNavigateBack = navController.previousBackStackEntry != null,
+                isInMultiSelectMode = homeUiState.selectedNotes.isNotEmpty(),
+                exitMultiSelectMode = viewModel::exitMultiSelectMode,
+                deleteAllNotes = viewModel::updateShowingDialogDeleteNotes
             )
         },
         floatingActionButton = {
@@ -90,11 +110,22 @@ fun HomeScreen(
         }
     ) { innerPadding ->
         HomeBody(
-            noteWithTagsList = homeUiState.noteWithTagsList,
+            homeUiState = homeUiState,
             modifier = Modifier.padding(innerPadding),
-            onSeeDetailClicked = onSeeDetailClicked,
+            onNoteClicked = { noteId ->
+                if (homeUiState.selectedNotes.isNotEmpty()) {
+                    homeUiState.noteWithTagsList.forEach {
+                        if (it.note.noteId == noteId) {
+                            viewModel.putToSelectedNotes(it)
+                        }
+                    }
+                } else {
+                    navigateToNoteDetail(noteId)
+                }
+            },
             onBookMarkClicked = viewModel::updateNote,
-            onClearTagClicked = viewModel::deleteTag
+            onClearTagClicked = viewModel::deleteTag,
+            onNoteLongClicked = viewModel::putToSelectedNotes
         )
     }
 }
@@ -104,6 +135,9 @@ fun HomeScreen(
 fun HomeTopAppBar(
     title: String,
     canNavigateBack: Boolean,
+    isInMultiSelectMode: Boolean,
+    exitMultiSelectMode: () -> Unit,
+    deleteAllNotes: () -> Unit,
     modifier: Modifier = Modifier,
     navigateUp: () -> Unit = {}
 ) {
@@ -121,17 +155,32 @@ fun HomeTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
-                )
-            }
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Calendar"
-                )
+            if (isInMultiSelectMode) {
+                IconButton(onClick = deleteAllNotes) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Search"
+                    )
+                }
+                IconButton(onClick = exitMultiSelectMode) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Search"
+                    )
+                }
+            } else {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search"
+                    )
+                }
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Calendar"
+                    )
+                }
             }
         }
     )
@@ -139,34 +188,38 @@ fun HomeTopAppBar(
 
 @Composable
 fun HomeBody(
-    noteWithTagsList: List<NoteWithTags>,
-    onSeeDetailClicked: (Long) -> Unit,
+    homeUiState: HomeUiState,
+    onNoteClicked: (Long) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
     onClearTagClicked: (Tag) -> Unit,
+    onNoteLongClicked: (NoteWithTags) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NoteWithTagsList(
-        noteWithTagsList = noteWithTagsList,
-        onItemClicked = { onSeeDetailClicked(it.note.noteId) },
+        homeUiState = homeUiState,
+        onNoteClicked = { onNoteClicked(it.note.noteId) },
         onBookMarkClicked = { onBookMarkClicked(it) },
         modifier = modifier,
-        onClearTagClicked = onClearTagClicked
+        onClearTagClicked = onClearTagClicked,
+        onNoteLongClicked = onNoteLongClicked,
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteWithTagsList(
-    noteWithTagsList: List<NoteWithTags>,
-    onItemClicked: (NoteWithTags) -> Unit,
+    homeUiState: HomeUiState,
+    onNoteClicked: (NoteWithTags) -> Unit,
+    onNoteLongClicked: (NoteWithTags) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
     onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // sorted list
+    // sort list
     // marked notes is on top of list
     // among marked notes, notes having reminder date close to current date is on top
     // among notes that have reminder date equal to one another, notes having created date close to current date is on top
-    val sortedList = noteWithTagsList.sortedWith(
+    val sortedList = homeUiState.noteWithTagsList.sortedWith(
         compareByDescending<NoteWithTags> { it.note.isMarked }
             .thenByDescending { noteWithTags -> noteWithTags.note.reminderDate.takeIf { it > Date() } }
             .thenByDescending { it.note.createdDate }
@@ -176,14 +229,20 @@ fun NoteWithTagsList(
         items(sortedList.size) { index ->
             NoteItem(
                 noteWithTags = sortedList[index],
+                isLongClicked = homeUiState.selectedNotes.any { noteWithTag ->
+                    noteWithTag == sortedList[index]
+                },
                 onBookMarkClicked = { onBookMarkClicked(it) },
                 modifier = Modifier
-                    .clickable { onItemClicked(sortedList[index]) }
                     .padding(
                         start = 10.dp,
                         end = 10.dp,
                         top = 5.dp,
                         bottom = 5.dp
+                    )
+                    .combinedClickable(
+                        onClick = { onNoteClicked(sortedList[index]) },
+                        onLongClick = { onNoteLongClicked(sortedList[index]) },
                     ),
                 onClearTagClicked = onClearTagClicked
             )
@@ -194,6 +253,7 @@ fun NoteWithTagsList(
 @Composable
 fun NoteItem(
     noteWithTags: NoteWithTags,
+    isLongClicked: Boolean,
     onBookMarkClicked: (NoteWithTags) -> Unit,
     onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
@@ -206,10 +266,30 @@ fun NoteItem(
     val formattedReminderDate = df.format(reminderDate)
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .let {
+                if (isLongClicked) {
+                    it.border(
+                        width = 3.dp,
+                        color = MaterialTheme.colorScheme.surfaceTint,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                } else {
+                    it
+                }
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
-        Column {
+        Column(
+            modifier = Modifier.let {
+                if (isLongClicked) {
+                    it.background(color = MaterialTheme.colorScheme.inversePrimary)
+                } else {
+                    it
+                }
+            }
+        ) {
             Row {
                 Text(
                     text = noteWithTags.note.title,
@@ -358,11 +438,16 @@ fun TagItem(
 //    HomeScreen({})
 //}
 
-//@Preview
-//@Composable
-//fun NoteItemPreview() {
-//    NoteItem(noteWithTags = item3)
-//}
+@Preview
+@Composable
+fun NoteItemPreview() {
+    NoteItem(
+        noteWithTags = NoteWithTags(),
+        isLongClicked = true,
+        onClearTagClicked = {},
+        onBookMarkClicked = {}
+    )
+}
 
 //@Preview
 //@Composable

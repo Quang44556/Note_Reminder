@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.NotesRepository
 import com.example.notereminder.data.entities.Tag
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() {
@@ -16,13 +15,18 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
      * Holds home ui state. The list of items are retrieved from [NotesRepository] and mapped to
      * [HomeUiState]
      */
-    val homeUiState: StateFlow<HomeUiState> =
-        notesRepository.getAllNotesWithTagsStream().map { HomeUiState(it) }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = HomeUiState()
-            )
+    var homeUiState: MutableStateFlow<HomeUiState> = MutableStateFlow(HomeUiState())
+
+    init {
+        notesRepository.getAllNotesWithTagsStream()
+            .onEach { newData ->
+                homeUiState.value = HomeUiState(
+                    noteWithTagsList = newData,
+                    selectedNotes = homeUiState.value.selectedNotes,
+                )
+            }
+            .launchIn(viewModelScope)
+    }
 
     /**
      * update note in database
@@ -42,9 +46,60 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
         }
     }
 
-    companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
+    /**
+     * put [noteWithTags] to selected notes list when user long click [noteWithTags]
+     * and when user click [noteWithTags] while app is in multi select mode
+     */
+    fun putToSelectedNotes(noteWithTags: NoteWithTags) {
+        if (homeUiState.value.selectedNotes.contains(noteWithTags)) {
+            homeUiState.value = HomeUiState(
+                noteWithTagsList = homeUiState.value.noteWithTagsList,
+                selectedNotes = homeUiState.value.selectedNotes - noteWithTags
+            )
+        } else {
+            homeUiState.value = HomeUiState(
+                noteWithTagsList = homeUiState.value.noteWithTagsList,
+                selectedNotes = homeUiState.value.selectedNotes + noteWithTags
+            )
+        }
+    }
+
+    /**
+     * exit multi select mode
+     */
+    fun exitMultiSelectMode() {
+        homeUiState.value = HomeUiState(
+            noteWithTagsList = homeUiState.value.noteWithTagsList,
+            selectedNotes = listOf()
+        )
+    }
+
+    /**
+     *delete all notes which were selected in multi select mode
+     */
+    fun deleteSelectedNotes() {
+        viewModelScope.launch {
+            homeUiState.value.selectedNotes.forEach {
+                notesRepository.deleteNoteWithTags(it)
+            }
+            exitMultiSelectMode()
+        }
+    }
+
+    /**
+     *show or hide dialog ask user if they are sure to delete selected notes or not
+     */
+    fun updateShowingDialogDeleteNotes() {
+        homeUiState.value = HomeUiState(
+            noteWithTagsList = homeUiState.value.noteWithTagsList,
+            selectedNotes = homeUiState.value.selectedNotes,
+            isShowingDialogDeleteNotes = !homeUiState.value.isShowingDialogDeleteNotes
+        )
     }
 }
 
-data class HomeUiState(val noteWithTagsList: List<NoteWithTags> = listOf())
+data class HomeUiState(
+    val noteWithTagsList: List<NoteWithTags> = listOf(),
+    val selectedNotes: List<NoteWithTags> = listOf(),
+    val isShowingDialogDeleteNotes: Boolean = false,
+)

@@ -17,4 +17,5 @@
     <string name="description_delete_note_icon">Delete current note</string>
     <string name="description_save_icon">save title and content of current note to database</string>
     <string name="title_dialog_save_note">Do you want to save this note ?</string>
+    <string name="title_dialog_delete_notes">Are you sure you want to delete delected notes</string>
 </resources>
