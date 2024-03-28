@@ -26,6 +26,15 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE noteId = :id")
     fun getNoteWithTags(id: Int): Flow<NoteWithTags>
 
+    @Transaction
+    @Query(
+        "SELECT * FROM notes n WHERE n.title LIKE '%' || :text || '%'" +
+                " OR n.content LIKE '%' || :text || '%'" +
+                " OR n.noteId IN (SELECT n1.noteId FROM notes n1, tags t1" +
+                " WHERE n1.noteId = t1.noteBelongedToId AND t1.name LIKE '%' || :text || '%' )"
+    )
+    fun getSearchedNoteWithTags(text: String): Flow<List<NoteWithTags>>
+
     @Delete
     suspend fun deleteNode(note: Note)
 }

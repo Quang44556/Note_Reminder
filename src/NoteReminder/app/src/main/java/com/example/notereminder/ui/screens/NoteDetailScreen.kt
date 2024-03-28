@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
@@ -51,7 +52,6 @@ object NoteDetailDestination : NavigationDestination {
 @Composable
 fun NoteDetailScreen(
     navigateBack: () -> Unit,
-    navController: NavHostController,
     modifier: Modifier = Modifier,
     viewModel: NoteDetailViewMode = viewModel(factory = AppViewModelProvider.Factory)
 ) {
@@ -65,7 +65,7 @@ fun NoteDetailScreen(
         )
     }
 
-    // dialog remind to save not
+    // dialog remind to save note
     if (uiState.isShowingDialogSaveNote) {
         MyAlertDialog(
             textRes = R.string.title_dialog_save_note,
@@ -78,6 +78,19 @@ fun NoteDetailScreen(
                 viewModel.insertOrUpdateNoteWithTags()
                 navigateBack()
             }
+        )
+    }
+
+    // if user choose delete current note, show dialog to ask again
+    if (uiState.isShowingDialogDeleteNote) {
+        MyAlertDialog(
+            textRes = R.string.title_dialog_delete_note,
+            onDismiss = viewModel::updateShowingDialogDeleteNote,
+            onConfirm = {
+                viewModel.deleteNoteWithTags()
+                viewModel.updateShowingDialogDeleteNote()
+                navigateBack()
+            },
         )
     }
 
@@ -96,7 +109,6 @@ fun NoteDetailScreen(
         topBar = {
             NoteDetailTopAppBar(
                 uiState = uiState,
-                canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = {
                     handleBackPress(
                         uiState = uiState,
@@ -155,7 +167,6 @@ fun NoteDetailTopAppBar(
     onDeleteClicked: () -> Unit,
     onSaveClicked: () -> Unit,
     uiState: NoteDetailUiState,
-    canNavigateBack: Boolean,
     modifier: Modifier = Modifier,
     navigateUp: () -> Unit = {}
 ) {
@@ -168,13 +179,11 @@ fun NoteDetailTopAppBar(
         },
         modifier = modifier,
         navigationIcon = {
-            if (canNavigateBack) {
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button)
-                    )
-                }
+            IconButton(onClick = navigateUp) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back_button)
+                )
             }
         },
         actions = {
@@ -190,7 +199,7 @@ fun NoteDetailTopAppBar(
             }
             IconButton(onClick = {}) {
                 Icon(
-                    imageVector = Icons.Default.Notifications,
+                    imageVector = Icons.Default.DateRange,
                     contentDescription = "Search"
                 )
             }
@@ -341,5 +350,5 @@ fun MyAlertDialog(
 @Preview
 @Composable
 fun NoteDetailScreenPreview() {
-    NoteDetailScreen({}, rememberNavController())
+    NoteDetailScreen({})
 }

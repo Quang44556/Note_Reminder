@@ -12,6 +12,8 @@ import com.example.notereminder.ui.screens.HomeDestination
 import com.example.notereminder.ui.screens.HomeScreen
 import com.example.notereminder.ui.screens.NoteDetailDestination
 import com.example.notereminder.ui.screens.NoteDetailScreen
+import com.example.notereminder.ui.screens.SearchDestination
+import com.example.notereminder.ui.screens.SearchScreen
 
 /**
  * Top level composable that represents screens for the application.
@@ -38,7 +40,7 @@ fun AppNavHost(
             HomeScreen(
                 modifier = Modifier,
                 navigateToNoteDetail = { navController.navigate("${NoteDetailDestination.route}/${it}") },
-                navController = navController,
+                navigateToSearch = { navController.navigate(SearchDestination.route) },
             )
         }
         composable(
@@ -50,7 +52,13 @@ fun AppNavHost(
             NoteDetailScreen(
                 modifier = Modifier,
                 navigateBack = { navController.navigateUp() },
-                navController = navController,
+            )
+        }
+        composable(route = SearchDestination.route) {
+            SearchScreen(
+                modifier = Modifier,
+                navigateBack = { navController.navigateUp() },
+                navigateToNoteDetail = { navController.navigate("${NoteDetailDestination.route}/${it}") },
             )
         }
     }

@@ -16,6 +16,11 @@ interface NotesRepository {
     fun getNoteWithTagsStream(id: Int): Flow<NoteWithTags>
 
     /**
+     * Retrieve all [NoteWithTags] from the the given data source that have title, content, tag matches with the [text].
+     */
+    fun getSearchedNoteWithTagsStream(text: String): Flow<List<NoteWithTags>>
+
+    /**
      * Update [Note] in the data source
      */
     suspend fun updateNote(note: Note)

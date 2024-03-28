@@ -16,6 +16,10 @@ class LocalNotesRepository(
     override fun getNoteWithTagsStream(id: Int): Flow<NoteWithTags> =
         noteDao.getNoteWithTags(id)
 
+    override fun getSearchedNoteWithTagsStream(text: String): Flow<List<NoteWithTags>> =
+        noteDao.getSearchedNoteWithTags(text)
+
+
     override suspend fun updateNote(note: Note) = noteDao.updateNote(note)
 
     /**

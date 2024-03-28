@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -49,7 +48,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import com.example.notereminder.DEFAULT_ID
 import com.example.notereminder.R
 import com.example.notereminder.data.NoteWithTags
@@ -66,8 +64,8 @@ object HomeDestination : NavigationDestination {
 
 @Composable
 fun HomeScreen(
+    navigateToSearch: () -> Unit,
     navigateToNoteDetail: (Long) -> Unit,
-    navController: NavHostController,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
@@ -90,10 +88,10 @@ fun HomeScreen(
         topBar = {
             HomeTopAppBar(
                 title = stringResource(id = R.string.app_name),
-                canNavigateBack = navController.previousBackStackEntry != null,
                 isInMultiSelectMode = homeUiState.selectedNotes.isNotEmpty(),
                 exitMultiSelectMode = viewModel::exitMultiSelectMode,
-                deleteAllNotes = viewModel::updateShowingDialogDeleteNotes
+                deleteAllNotes = viewModel::updateShowingDialogDeleteNotes,
+                navigateToSearch = navigateToSearch
             )
         },
         floatingActionButton = {
@@ -134,51 +132,34 @@ fun HomeScreen(
 @Composable
 fun HomeTopAppBar(
     title: String,
-    canNavigateBack: Boolean,
+    navigateToSearch: () -> Unit,
     isInMultiSelectMode: Boolean,
     exitMultiSelectMode: () -> Unit,
     deleteAllNotes: () -> Unit,
     modifier: Modifier = Modifier,
-    navigateUp: () -> Unit = {}
 ) {
     TopAppBar(
         title = { Text(title, style = MaterialTheme.typography.displayLarge) },
         modifier = modifier,
-        navigationIcon = {
-            if (canNavigateBack) {
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back_button)
-                    )
-                }
-            }
-        },
         actions = {
             if (isInMultiSelectMode) {
                 IconButton(onClick = deleteAllNotes) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Search"
+                        contentDescription = stringResource(id = R.string.description_delete_selected_notes_icon)
                     )
                 }
                 IconButton(onClick = exitMultiSelectMode) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = "Search"
+                        contentDescription = stringResource(id = R.string.description_exit_multiselect_icon)
                     )
                 }
             } else {
-                IconButton(onClick = {}) {
+                IconButton(onClick = navigateToSearch) {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search"
-                    )
-                }
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Calendar"
+                        contentDescription = stringResource(id = R.string.description_search_icon)
                     )
                 }
             }
@@ -196,7 +177,8 @@ fun HomeBody(
     modifier: Modifier = Modifier
 ) {
     NoteWithTagsList(
-        homeUiState = homeUiState,
+        selectedNotes = homeUiState.selectedNotes,
+        noteWithTagsList = homeUiState.noteWithTagsList,
         onNoteClicked = { onNoteClicked(it.note.noteId) },
         onBookMarkClicked = { onBookMarkClicked(it) },
         modifier = modifier,
@@ -208,7 +190,8 @@ fun HomeBody(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteWithTagsList(
-    homeUiState: HomeUiState,
+    selectedNotes: List<NoteWithTags>,
+    noteWithTagsList: List<NoteWithTags>,
     onNoteClicked: (NoteWithTags) -> Unit,
     onNoteLongClicked: (NoteWithTags) -> Unit,
     onBookMarkClicked: (NoteWithTags) -> Unit,
@@ -219,7 +202,7 @@ fun NoteWithTagsList(
     // marked notes is on top of list
     // among marked notes, notes having reminder date close to current date is on top
     // among notes that have reminder date equal to one another, notes having created date close to current date is on top
-    val sortedList = homeUiState.noteWithTagsList.sortedWith(
+    val sortedList = noteWithTagsList.sortedWith(
         compareByDescending<NoteWithTags> { it.note.isMarked }
             .thenByDescending { noteWithTags -> noteWithTags.note.reminderDate.takeIf { it > Date() } }
             .thenByDescending { it.note.createdDate }
@@ -229,7 +212,7 @@ fun NoteWithTagsList(
         items(sortedList.size) { index ->
             NoteItem(
                 noteWithTags = sortedList[index],
-                isLongClicked = homeUiState.selectedNotes.any { noteWithTag ->
+                isLongClicked = selectedNotes.any { noteWithTag ->
                     noteWithTag == sortedList[index]
                 },
                 onBookMarkClicked = { onBookMarkClicked(it) },

@@ -9,22 +9,29 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.notereminder.NoteReminderApplication
 import com.example.notereminder.ui.screens.HomeViewModel
 import com.example.notereminder.ui.screens.NoteDetailViewMode
+import com.example.notereminder.ui.screens.SearchViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire Inventory app
  */
 object AppViewModelProvider {
     val Factory = viewModelFactory {
-        // Initializer for ItemEditViewModel
+        // Initializer for HomeViewModel
         initializer {
             HomeViewModel(
                 noteReminderApplication().container.notesRepository
             )
         }
-        // Initializer for ItemEntryViewModel
+        // Initializer for NoteDetailViewMode
         initializer {
             NoteDetailViewMode(
                 this.createSavedStateHandle(),
+                noteReminderApplication().container.notesRepository
+            )
+        }
+        // Initializer for SearchViewModel
+        initializer {
+            SearchViewModel(
                 noteReminderApplication().container.notesRepository
             )
         }
