@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -42,6 +40,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,8 +54,9 @@ import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.entities.Tag
 import com.example.notereminder.ui.AppViewModelProvider
 import com.example.notereminder.ui.navigation.NavigationDestination
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 
 object HomeDestination : NavigationDestination {
@@ -73,7 +74,7 @@ fun HomeScreen(
 
     // if user choose delete selected notes, show dialog to ask again
     if (homeUiState.isShowingDialogDeleteNotes) {
-        MyAlertDialog(
+        DialogRemind(
             textRes = R.string.title_dialog_delete_notes,
             onDismiss = viewModel::updateShowingDialogDeleteNotes,
             onConfirm = {
@@ -200,12 +201,12 @@ fun NoteWithTagsList(
 ) {
     // sort list
     // marked notes is on top of list
-    // among marked notes, notes having reminder date close to current date is on top
-    // among notes that have reminder date equal to one another, notes having created date close to current date is on top
+    // among marked notes, notes having reminder date close to current date is on top, and notes don't have reminder date is at bottom
     val sortedList = noteWithTagsList.sortedWith(
         compareByDescending<NoteWithTags> { it.note.isMarked }
-            .thenByDescending { noteWithTags -> noteWithTags.note.reminderDate.takeIf { it > Date() } }
-            .thenByDescending { it.note.createdDate }
+            .thenByDescending { noteWithTags ->
+                noteWithTags.note.reminderDate?.let { it > Date() } ?: false
+            }
     )
 
     LazyColumn(modifier = modifier) {
@@ -241,12 +242,15 @@ fun NoteItem(
     onClearTagClicked: (Tag) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // format created date and reminder date
-    val createdDate = noteWithTags.note.createdDate
+    // format reminder date
     val reminderDate = noteWithTags.note.reminderDate
-    val df = DateFormat.getDateInstance(DateFormat.DEFAULT)
-    val formattedCreatedDate = df.format(createdDate)
-    val formattedReminderDate = df.format(reminderDate)
+   // val df = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val formattedReminderDate: String? = if (reminderDate != null) {
+        val df = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        df.format(reminderDate)
+    } else {
+        null
+    }
 
     Card(
         modifier = modifier
@@ -282,6 +286,7 @@ fun NoteItem(
                     fontSize = 25.sp,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
+                    style = TextStyle(fontWeight = FontWeight.Bold)
                 )
                 BookMarkIcon(
                     noteWithTags = noteWithTags,
@@ -292,28 +297,26 @@ fun NoteItem(
                 )
             }
 
-            Text(
-                text = noteWithTags.note.content,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                modifier = Modifier
-                    .padding(all = 5.dp)
-                    .fillMaxWidth()
-            )
+            if (noteWithTags.note.content.isNotEmpty()){
+                Text(
+                    text = noteWithTags.note.content,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .padding(all = 5.dp)
+                        .fillMaxWidth()
+                )
+            }
+
             TagsListInNote(
                 tags = noteWithTags.tags,
                 onClearTagClicked = onClearTagClicked,
             )
-            Row {
-                Text(
-                    text = formattedCreatedDate,
-                    modifier = Modifier
-                        .padding(all = 5.dp),
-                )
-                Spacer(modifier = Modifier.weight(1f))
+            if (formattedReminderDate != null) {
                 Text(
                     text = formattedReminderDate,
                     modifier = Modifier
+                        .align(alignment = Alignment.End)
                         .padding(all = 5.dp),
                 )
             }
@@ -327,25 +330,26 @@ fun BookMarkIcon(
     onBookMarkClicked: (NoteWithTags) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Icon(
-        painter = if (noteWithTags.note.isMarked) {
-            painterResource(id = R.drawable.bookmarked)
-        } else {
-            painterResource(id = R.drawable.bookmark_border)
-        },
-        contentDescription = stringResource(id = R.string.bookmark),
-        modifier = modifier
-            .size(30.dp)
-            .clickable {
-                onBookMarkClicked(
-                    noteWithTags.copy(
-                        note = noteWithTags.note.copy(
-                            isMarked = !noteWithTags.note.isMarked
-                        ), tags = noteWithTags.tags
-                    )
-                )
-            }
-    )
+    IconButton(onClick = {
+        onBookMarkClicked(
+            noteWithTags.copy(
+                note = noteWithTags.note.copy(
+                    isMarked = !noteWithTags.note.isMarked
+                ), tags = noteWithTags.tags
+            )
+        )
+    }) {
+        Icon(
+            painter = if (noteWithTags.note.isMarked) {
+                painterResource(id = R.drawable.bookmarked)
+            } else {
+                painterResource(id = R.drawable.bookmark_border)
+            },
+            contentDescription = stringResource(id = R.string.bookmark),
+            modifier = modifier
+                .size(30.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

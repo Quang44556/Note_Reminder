@@ -12,6 +12,5 @@ data class Note(
     val title: String = "",
     val content: String = "",
     val isMarked: Boolean = false,
-    val createdDate: Date = Date(),
-    val reminderDate: Date = Date(),
+    var reminderDate: Date? = null,
 )

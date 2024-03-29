@@ -52,13 +52,11 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
      */
     fun putToSelectedNotes(noteWithTags: NoteWithTags) {
         if (homeUiState.value.selectedNotes.contains(noteWithTags)) {
-            homeUiState.value = HomeUiState(
-                noteWithTagsList = homeUiState.value.noteWithTagsList,
+            homeUiState.value = homeUiState.value.copy(
                 selectedNotes = homeUiState.value.selectedNotes - noteWithTags
             )
         } else {
-            homeUiState.value = HomeUiState(
-                noteWithTagsList = homeUiState.value.noteWithTagsList,
+            homeUiState.value = homeUiState.value.copy(
                 selectedNotes = homeUiState.value.selectedNotes + noteWithTags
             )
         }
@@ -68,8 +66,7 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
      * exit multi select mode
      */
     fun exitMultiSelectMode() {
-        homeUiState.value = HomeUiState(
-            noteWithTagsList = homeUiState.value.noteWithTagsList,
+        homeUiState.value = homeUiState.value.copy(
             selectedNotes = listOf()
         )
     }
@@ -90,9 +87,7 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
      *show or hide dialog ask user if they are sure to delete selected notes or not
      */
     fun updateShowingDialogDeleteNotes() {
-        homeUiState.value = HomeUiState(
-            noteWithTagsList = homeUiState.value.noteWithTagsList,
-            selectedNotes = homeUiState.value.selectedNotes,
+        homeUiState.value = homeUiState.value.copy(
             isShowingDialogDeleteNotes = !homeUiState.value.isShowingDialogDeleteNotes
         )
     }

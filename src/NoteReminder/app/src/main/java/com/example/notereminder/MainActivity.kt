@@ -11,7 +11,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             NoteReminderTheme {
                 NoteReminderApp()
-                //CalendarScreen()
             }
         }
     }

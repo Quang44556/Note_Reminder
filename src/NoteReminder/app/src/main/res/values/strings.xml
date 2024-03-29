@@ -22,4 +22,6 @@
     <string name="description_delete_selected_notes_icon">Delete all selected note icon</string>
     <string name="description_exit_multiselect_icon">Exit multi select mode icon</string>
     <string name="description_search_icon">Search icon</string>
+    <string name="title_dialog_set_reminder">Set reminder</string>
+    <string name="delete_reminder">Delete</string>
 </resources>

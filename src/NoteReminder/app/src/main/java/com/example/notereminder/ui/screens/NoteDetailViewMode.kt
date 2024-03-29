@@ -1,6 +1,5 @@
 package com.example.notereminder.ui.screens
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notereminder.DEFAULT_ID
+import com.example.notereminder.convertToTimeReminder
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.NotesRepository
 import com.example.notereminder.data.entities.Tag
@@ -15,6 +15,11 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.util.Calendar
+import java.util.Date
 
 class NoteDetailViewMode(
     savedStateHandle: SavedStateHandle,
@@ -43,70 +48,104 @@ class NoteDetailViewMode(
         viewModelScope.launch {
             noteDetailUiState = notesRepository.getNoteWithTagsStream(noteId)
                 .filterNotNull()
-                .map { NoteDetailUiState(it) }
+                .map {
+                    NoteDetailUiState(
+                        noteWithTags = it,
+                        timeReminder = if (noteDetailUiState.noteWithTags.note.reminderDate != null) {
+                            convertToTimeReminder(noteDetailUiState.noteWithTags.note.reminderDate)
+                        } else {
+                            convertToTimeReminder(it.note.reminderDate)
+                        }
+                    )
+                }
                 .first()
         }
     }
 
     /**
-     * update [NoteDetailUiState]
+     * update NoteWithTags ui state
      */
-    fun updateNoteDetailUiState(noteWithTags: NoteWithTags) {
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = NoteWithTags(
-                note = noteWithTags.note,
-                tags = noteWithTags.tags
-            ),
-            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon
-        )
-
-        // if check icon is not showing, show it
-        if (!noteDetailUiState.isShowingCheckIcon) {
-            updateShowingCheckIcon()
-        }
+    fun updateNoteWithTagsUi(noteWithTags: NoteWithTags) {
+        noteDetailUiState = noteDetailUiState.copy(noteWithTags = noteWithTags)
     }
 
     /**
      * show or hide dialog add tag
      */
     fun updateShowingDialogAddTag() {
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = noteDetailUiState.noteWithTags,
-            isShowingDialogAddTag = !noteDetailUiState.isShowingDialogAddTag,
-            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
-        )
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingDialogAddTag = !noteDetailUiState.isShowingDialogAddTag)
     }
 
     /**
      * show or hide dialog delete current note
      */
     fun updateShowingDialogDeleteNote() {
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = noteDetailUiState.noteWithTags,
-            isShowingDialogDeleteNote = !noteDetailUiState.isShowingDialogDeleteNote,
-            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
-        )
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingDialogDeleteNote = !noteDetailUiState.isShowingDialogDeleteNote)
     }
 
     /**
      * show or hide dialog remind to save note
      */
     fun updateShowingDialogSaveNote() {
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = noteDetailUiState.noteWithTags,
-            isShowingDialogSaveNote = !noteDetailUiState.isShowingDialogSaveNote,
-            isShowingCheckIcon = noteDetailUiState.isShowingCheckIcon,
-        )
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingDialogSaveNote = !noteDetailUiState.isShowingDialogSaveNote)
     }
 
     /**
      * show or hide check icon
      */
-    private fun updateShowingCheckIcon() {
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = noteDetailUiState.noteWithTags,
-            isShowingCheckIcon = !noteDetailUiState.isShowingCheckIcon,
-            isShowingDialogAddTag = noteDetailUiState.isShowingDialogAddTag
+    fun updateShowingCheckIcon() {
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingCheckIcon = !noteDetailUiState.isShowingCheckIcon)
+    }
+
+    /**
+     * show or hide dialog set reminder
+     */
+    fun updateShowingDialogSetReminder() {
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingDialogSetReminder = !noteDetailUiState.isShowingDialogSetReminder)
+    }
+
+    /**
+     * reset time reminder equal to reminder date of current note
+     */
+    fun resetTimeReminder() {
+        noteDetailUiState =
+            noteDetailUiState.copy(timeReminder = convertToTimeReminder(noteDetailUiState.noteWithTags.note.reminderDate))
+    }
+
+    /**
+     * show or hide date picker, time picker and dialog set reminder
+     */
+    fun updateShowingDatePicker() {
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingDatePicker = !noteDetailUiState.isShowingDatePicker)
+    }
+
+    /**
+     * show or hide date picker, time picker and dialog set reminder
+     */
+    fun updateShowingTimePicker() {
+        noteDetailUiState =
+            noteDetailUiState.copy(isShowingTimePicker = !noteDetailUiState.isShowingTimePicker)
+    }
+
+    fun updateTimeReminder(date: Date? = null) {
+        noteDetailUiState = noteDetailUiState.copy(
+            timeReminder = noteDetailUiState.timeReminder.copy(
+                date = date ?: noteDetailUiState.timeReminder.date,
+            )
+        )
+    }
+
+    fun updateTimeReminder(time: LocalTime? = null) {
+        noteDetailUiState = noteDetailUiState.copy(
+            timeReminder = noteDetailUiState.timeReminder.copy(
+                time = time ?: noteDetailUiState.timeReminder.time
+            )
         )
     }
 
@@ -121,6 +160,27 @@ class NoteDetailViewMode(
             updateNoteWithTags()
         }
         updateShowingCheckIcon()
+    }
+
+    fun updateNoteReminderDate(delete: Boolean = false) {
+        if (delete) {
+            noteDetailUiState.noteWithTags.note.reminderDate = null
+        } else {
+            val date = noteDetailUiState.timeReminder.date
+            val time = noteDetailUiState.timeReminder.time
+
+            val calendar = Calendar.getInstance()
+            calendar.time = date
+
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val localDateTime = LocalDateTime.of(year, month + 1, day, time.hour, time.minute)
+
+            noteDetailUiState.noteWithTags.note.reminderDate =
+                Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant())
+        }
     }
 
     /**
@@ -173,16 +233,8 @@ class NoteDetailViewMode(
 
         noteDetailUiState.noteWithTags.tags += Tag(
             name = tag.name,
-            noteBelongedToId = noteDetailUiState.noteWithTags.note.noteId
+            noteBelongedToId = noteDetailUiState.noteWithTags.note.noteId,
         )
-
-        // if check icon is not showing, show it
-        if (!noteDetailUiState.isShowingCheckIcon) {
-            updateShowingCheckIcon()
-        }
-
-        // hide dialog add tag
-        updateShowingDialogAddTag()
     }
 
     /**
@@ -191,17 +243,11 @@ class NoteDetailViewMode(
     fun deleteTagInUiState(tag: Tag) {
         deletedTags.add(tag)
 
-        noteDetailUiState = NoteDetailUiState(
-            noteWithTags = NoteWithTags(
-                note = noteDetailUiState.noteWithTags.note,
-                tags = noteDetailUiState.noteWithTags.tags.toMutableList().apply { remove(tag) }
-            ),
+        noteDetailUiState = noteDetailUiState.copy(
+            noteWithTags = noteDetailUiState.noteWithTags.copy(
+                tags = noteDetailUiState.noteWithTags.tags.toMutableList().apply { remove(tag) },
+            )
         )
-
-        // if check icon is not showing, show it
-        if (!noteDetailUiState.isShowingCheckIcon) {
-            updateShowingCheckIcon()
-        }
     }
 
     /**
@@ -220,4 +266,13 @@ data class NoteDetailUiState(
     val isShowingDialogDeleteNote: Boolean = false,
     val isShowingCheckIcon: Boolean = false,
     val isShowingDialogSaveNote: Boolean = false,
+    val isShowingDialogSetReminder: Boolean = false,
+    val isShowingDatePicker: Boolean = false,
+    val isShowingTimePicker: Boolean = false,
+    val timeReminder: TimeReminder = TimeReminder()
+)
+
+data class TimeReminder(
+    val date: Date = Date(),
+    val time: LocalTime = LocalTime.now()
 )
