@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Note Reminder</string>
     <string name="description_back_button">Back</string>
@@ -5,23 +6,23 @@
     <string name="note_detail_title" />
     <string name="description_bookmark">Bookmark</string>
     <string name="description_clearTag">Clear tag</string>
-    <string name="hintTitle">Title</string>
-    <string name="hintContent">Content</string>
+    <string name="hintTitle">Tiêu đề</string>
+    <string name="hintContent">Nội dung</string>
     <string name="dialog_ok">OK</string>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="add_tag_title">Add tag</string>
-    <string name="title_dialog_delete_note">Are you sure you want to delete this note ?</string>
-    <string name="dialog_yes">Yes</string>
-    <string name="dialog_no">No</string>
+    <string name="dialog_cancel">Hủy</string>
+    <string name="add_tag_title">Thêm nhãn</string>
+    <string name="title_dialog_delete_note">Bạn có chắc muốn xóa ghi chú này không ?</string>
+    <string name="dialog_yes">Có</string>
+    <string name="dialog_no">Không</string>
     <string name="description_add_tag_icon">Add a tag</string>
     <string name="description_delete_note_icon">Delete current note</string>
     <string name="description_save_icon">save title and content of current note to database</string>
-    <string name="title_dialog_save_note">Do you want to save this note ?</string>
-    <string name="title_dialog_delete_notes">Are you sure you want to delete selected notes ?</string>
-    <string name="search_hint">Title, content, tag,…</string>
+    <string name="title_dialog_save_note">Bạn có muốn lưu ghi chú này không ?</string>
+    <string name="title_dialog_delete_notes">Bạn có chắc muốn xóa các ghi chú được chọn không ?</string>
+    <string name="search_hint">Tiêu đề, nội dung, nhãn,…</string>
     <string name="description_delete_selected_notes_icon">Delete all selected note icon</string>
     <string name="description_exit_multiselect_icon">Exit multi select mode icon</string>
     <string name="description_search_icon">Search icon</string>
-    <string name="title_dialog_set_reminder">Set reminder</string>
-    <string name="delete_reminder">Delete</string>
+    <string name="title_dialog_set_reminder">Thiết lập nhắc nhở</string>
+    <string name="delete_reminder">Xóa</string>
 </resources>

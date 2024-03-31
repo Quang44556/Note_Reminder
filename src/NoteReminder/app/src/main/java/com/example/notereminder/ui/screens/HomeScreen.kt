@@ -103,7 +103,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_note)
+                    contentDescription = stringResource(R.string.description_add_note)
                 )
             }
         }
@@ -301,7 +301,7 @@ fun NoteItem(
                 Text(
                     text = noteWithTags.note.content,
                     overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
+                    maxLines = 3,
                     modifier = Modifier
                         .padding(all = 5.dp)
                         .fillMaxWidth()
@@ -345,7 +345,7 @@ fun BookMarkIcon(
             } else {
                 painterResource(id = R.drawable.bookmark_border)
             },
-            contentDescription = stringResource(id = R.string.bookmark),
+            contentDescription = stringResource(id = R.string.description_bookmark),
             modifier = modifier
                 .size(30.dp)
         )
@@ -395,7 +395,7 @@ fun TagItem(
             )
             Icon(
                 imageVector = Icons.Default.Clear,
-                contentDescription = stringResource(id = R.string.clearTag),
+                contentDescription = stringResource(id = R.string.description_clearTag),
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.inversePrimary)
                     .align(alignment = Alignment.CenterVertically)
@@ -407,24 +407,6 @@ fun TagItem(
     }
 }
 
-//@Preview
-//@Composable
-//fun TagPreview() {
-//    TagItem(tag1)
-//}
-
-//@Preview
-//@Composable
-//fun TagListPreview() {
-//    TagsListInNote(tags = listOf(tag1, tag1, tag1))
-//}
-
-//@Preview
-//@Composable
-//fun HomeScreenPreview() {
-//    HomeScreen({})
-//}
-
 @Preview
 @Composable
 fun NoteItemPreview() {
@@ -435,12 +417,3 @@ fun NoteItemPreview() {
         onBookMarkClicked = {}
     )
 }
-
-//@Preview
-//@Composable
-//fun HomeBodyPreview() {
-//    HomeBody(
-//        noteWithTagsList = listOf(item1, item2, item3),
-//        modifier = Modifier.padding(9.dp)
-//    )
-//}

@@ -100,7 +100,7 @@ fun SearchTopAppBar(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back_button)
+                contentDescription = stringResource(R.string.description_back_button)
             )
         }
 

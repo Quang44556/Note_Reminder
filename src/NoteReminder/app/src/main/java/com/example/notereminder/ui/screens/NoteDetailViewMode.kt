@@ -133,6 +133,9 @@ class NoteDetailViewMode(
             noteDetailUiState.copy(isShowingTimePicker = !noteDetailUiState.isShowingTimePicker)
     }
 
+    /**
+     * update property date in [TimeReminder]
+     */
     fun updateTimeReminder(date: Date? = null) {
         noteDetailUiState = noteDetailUiState.copy(
             timeReminder = noteDetailUiState.timeReminder.copy(
@@ -141,6 +144,9 @@ class NoteDetailViewMode(
         )
     }
 
+    /**
+     * update property time in [TimeReminder]
+     */
     fun updateTimeReminder(time: LocalTime? = null) {
         noteDetailUiState = noteDetailUiState.copy(
             timeReminder = noteDetailUiState.timeReminder.copy(
@@ -162,6 +168,10 @@ class NoteDetailViewMode(
         updateShowingCheckIcon()
     }
 
+    /**
+     * update property reminderDate in Note in [NoteWithTags]
+     * if [delete] = true, reminderDate = null
+     */
     fun updateNoteReminderDate(delete: Boolean = false) {
         if (delete) {
             noteDetailUiState.noteWithTags.note.reminderDate = null
@@ -272,6 +282,9 @@ data class NoteDetailUiState(
     val timeReminder: TimeReminder = TimeReminder()
 )
 
+/**
+ * object in dialog set reminder
+ */
 data class TimeReminder(
     val date: Date = Date(),
     val time: LocalTime = LocalTime.now()
