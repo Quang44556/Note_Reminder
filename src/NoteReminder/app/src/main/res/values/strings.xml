@@ -24,4 +24,7 @@
     <string name="description_search_icon">Search icon</string>
     <string name="title_dialog_set_reminder">Set reminder</string>
     <string name="delete_reminder">Delete</string>
+    <string name="message_cannot_choose_date">The selected time is invalid</string>
+    <string name="explain_permission">This app needs permission to post notifications</string>
+    <string name="go_to_setting">It seems you permanently declined post notifications permission. You can go to the app setting to grant it</string>
 </resources>

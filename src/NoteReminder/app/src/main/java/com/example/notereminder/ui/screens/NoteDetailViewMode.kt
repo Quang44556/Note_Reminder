@@ -11,6 +11,7 @@ import com.example.notereminder.convertToTimeReminder
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.NotesRepository
 import com.example.notereminder.data.entities.Tag
+import com.example.notereminder.notification.AndroidAlarmScheduler
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -22,6 +23,7 @@ import java.util.Calendar
 import java.util.Date
 
 class NoteDetailViewMode(
+    private val scheduler: AndroidAlarmScheduler,
     savedStateHandle: SavedStateHandle,
     private val notesRepository: NotesRepository,
 ) : ViewModel() {
@@ -166,6 +168,20 @@ class NoteDetailViewMode(
             updateNoteWithTags()
         }
         updateShowingCheckIcon()
+
+        // schedule notification
+        scheduleNotification()
+    }
+
+    private fun scheduleNotification() {
+        val note = noteDetailUiState.noteWithTags.note
+        if (note.reminderDate != null) {
+            // schedule new notification
+            note.let(scheduler::schedule)
+        } else {
+            // cancel scheduled notification
+            note.let(scheduler::cancel)
+        }
     }
 
     /**
@@ -288,4 +304,39 @@ data class NoteDetailUiState(
 data class TimeReminder(
     val date: Date = Date(),
     val time: LocalTime = LocalTime.now()
-)
+) {
+    fun compareTo(otherDate: Date): Int {
+        val calendar = Calendar.getInstance()
+        val calendarOtherDate = Calendar.getInstance()
+        calendar.time = date
+        calendarOtherDate.time = otherDate
+
+        // compare year
+        val yearDiff = calendar.get(Calendar.YEAR) - calendarOtherDate.get(Calendar.YEAR)
+        if (yearDiff != 0) {
+            return yearDiff
+        }
+
+        // compare month
+        val monthDiff = calendar.get(Calendar.MONTH) - calendarOtherDate.get(Calendar.MONTH)
+        if (monthDiff != 0) {
+            return monthDiff
+        }
+
+        // compare day
+        val dayDiff =
+            calendar.get(Calendar.DAY_OF_MONTH) - calendarOtherDate.get(Calendar.DAY_OF_MONTH)
+        if (dayDiff != 0) {
+            return dayDiff
+        }
+
+        // compare hour
+        val hourDiff = time.hour - calendarOtherDate.get(Calendar.HOUR_OF_DAY)
+        if (hourDiff != 0) {
+            return hourDiff
+        }
+
+        // compare minute
+        return time.minute - calendarOtherDate.get(Calendar.MINUTE)
+    }
+}

@@ -1,0 +1,31 @@
+package com.example.notereminder.notification
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import com.example.notereminder.ACTION_SCHEDULE_NOTIFICATION
+import com.example.notereminder.CONTENT
+import com.example.notereminder.NOTE_ID
+import com.example.notereminder.TITLE
+
+class AlarmReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        if (intent != null) {
+            if (intent.action == ACTION_SCHEDULE_NOTIFICATION
+                || intent.action == Intent.ACTION_BOOT_COMPLETED
+                || intent.action == "android.intent.action.QUICKBOOT_POWERON"
+            ) {
+                val id = intent.getLongExtra(NOTE_ID, 0)
+                val title = intent.getStringExtra(TITLE) ?: ""
+                val content = intent.getStringExtra(CONTENT) ?: ""
+
+                val notificationService = context?.let { NotificationService(it) }
+                notificationService?.showBasicNotification(
+                    id = id,
+                    title = title,
+                    content = content
+                )
+            }
+        }
+    }
+}

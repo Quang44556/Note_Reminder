@@ -25,6 +25,7 @@ object AppViewModelProvider {
         // Initializer for NoteDetailViewMode
         initializer {
             NoteDetailViewMode(
+                noteReminderApplication().scheduler,
                 this.createSavedStateHandle(),
                 noteReminderApplication().container.notesRepository
             )

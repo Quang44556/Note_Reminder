@@ -25,4 +25,7 @@
     <string name="description_search_icon">Search icon</string>
     <string name="title_dialog_set_reminder">Thiết lập nhắc nhở</string>
     <string name="delete_reminder">Xóa</string>
+    <string name="message_cannot_choose_date">Thời gian đã chọn không hợp lệ</string>
+    <string name="explain_permission">Ứng dụng này cần quyền gửi thông báo.</string>
+    <string name="go_to_setting">Có vẻ như bạn đã từ chối quyền gửi thông báo vĩnh viễn. Bạn có thể vào cài đặt ứng dụng để cấp quyền.</string>
 </resources>
