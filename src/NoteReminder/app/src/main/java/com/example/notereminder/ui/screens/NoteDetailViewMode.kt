@@ -169,19 +169,21 @@ class NoteDetailViewMode(
         }
         updateShowingCheckIcon()
 
-        // schedule notification
-        scheduleNotification()
+        if (noteDetailUiState.noteWithTags.note.reminderDate != null) {
+            // schedule new notification
+            scheduleNotification()
+        } else {
+            // cancel scheduled notification
+            cancelNotification()
+        }
     }
 
     private fun scheduleNotification() {
-        val note = noteDetailUiState.noteWithTags.note
-        if (note.reminderDate != null) {
-            // schedule new notification
-            note.let(scheduler::schedule)
-        } else {
-            // cancel scheduled notification
-            note.let(scheduler::cancel)
-        }
+        noteDetailUiState.noteWithTags.note.let(scheduler::schedule)
+    }
+
+    private fun cancelNotification() {
+        noteDetailUiState.noteWithTags.note.let(scheduler::cancel)
     }
 
     /**
@@ -280,6 +282,9 @@ class NoteDetailViewMode(
      *Delete a [NoteWithTags] from database
      */
     fun deleteNoteWithTags() {
+        // cancel scheduled notification
+        cancelNotification()
+
         viewModelScope.launch {
             notesRepository.deleteNoteWithTags(noteDetailUiState.noteWithTags)
         }

@@ -11,10 +11,7 @@ import com.example.notereminder.TITLE
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent != null) {
-            if (intent.action == ACTION_SCHEDULE_NOTIFICATION
-                || intent.action == Intent.ACTION_BOOT_COMPLETED
-                || intent.action == "android.intent.action.QUICKBOOT_POWERON"
-            ) {
+            if (intent.action == ACTION_SCHEDULE_NOTIFICATION) {
                 val id = intent.getLongExtra(NOTE_ID, 0)
                 val title = intent.getStringExtra(TITLE) ?: ""
                 val content = intent.getStringExtra(CONTENT) ?: ""
