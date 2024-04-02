@@ -162,19 +162,21 @@ class NoteDetailViewMode(
      * Otherwise, update it in database
      */
     fun insertOrUpdateNoteWithTags() {
-        if (noteDetailUiState.noteWithTags.note.noteId == DEFAULT_ID) {
-            insertNoteWithTags()
-        } else {
-            updateNoteWithTags()
-        }
-        updateShowingCheckIcon()
+        viewModelScope.launch {
+            if (noteDetailUiState.noteWithTags.note.noteId == DEFAULT_ID) {
+                insertNoteWithTags()
+            } else {
+                updateNoteWithTags()
+            }
+            updateShowingCheckIcon()
 
-        if (noteDetailUiState.noteWithTags.note.reminderDate != null) {
-            // schedule new notification
-            scheduleNotification()
-        } else {
-            // cancel scheduled notification
-            cancelNotification()
+            if (noteDetailUiState.noteWithTags.note.reminderDate != null) {
+                // schedule new notification
+                scheduleNotification()
+            } else {
+                // cancel scheduled notification
+                cancelNotification()
+            }
         }
     }
 
@@ -220,24 +222,20 @@ class NoteDetailViewMode(
     /**
      *insert [NoteWithTags] to database
      */
-    private fun insertNoteWithTags() {
-        viewModelScope.launch {
-            noteDetailUiState.noteWithTags.note.noteId =
-                notesRepository.insertNote(noteDetailUiState.noteWithTags.note)
-            insertTagsToDatabase()
-            deleteTagsInDatabase()
-        }
+    private suspend fun insertNoteWithTags() {
+        noteDetailUiState.noteWithTags.note.noteId =
+            notesRepository.insertNote(noteDetailUiState.noteWithTags.note)
+        insertTagsToDatabase()
+        deleteTagsInDatabase()
     }
 
     /**
      *Update [NoteWithTags] to database
      */
-    private fun updateNoteWithTags() {
-        viewModelScope.launch {
-            notesRepository.updateNoteAndTags(noteDetailUiState.noteWithTags)
-            insertTagsToDatabase()
-            deleteTagsInDatabase()
-        }
+    private suspend fun updateNoteWithTags() {
+        notesRepository.updateNoteAndTags(noteDetailUiState.noteWithTags)
+        insertTagsToDatabase()
+        deleteTagsInDatabase()
     }
 
     /**

@@ -4,7 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.example.notereminder.ACTION_SCHEDULE_NOTIFICATION
+import android.util.Log
 import com.example.notereminder.CONTENT
 import com.example.notereminder.NOTE_ID
 import com.example.notereminder.TITLE
@@ -22,6 +22,8 @@ class AndroidAlarmScheduler(
             putExtra(CONTENT, note.content)
             putExtra(NOTE_ID, note.noteId)
         }
+
+        Log.d("aaaa", note.noteId.toString())
 
         note.reminderDate?.let {
             alarmManager.setExactAndAllowWhileIdle(
