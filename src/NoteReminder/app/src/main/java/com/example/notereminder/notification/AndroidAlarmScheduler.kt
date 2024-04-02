@@ -18,7 +18,6 @@ class AndroidAlarmScheduler(
 
     override fun schedule(note: Note) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = ACTION_SCHEDULE_NOTIFICATION
             putExtra(TITLE, note.title)
             putExtra(CONTENT, note.content)
             putExtra(NOTE_ID, note.noteId)
@@ -40,7 +39,6 @@ class AndroidAlarmScheduler(
 
     override fun cancel(note: Note) {
         val intent = Intent(context, AlarmReceiver::class.java)
-        intent.action = ACTION_SCHEDULE_NOTIFICATION
         alarmManager.cancel(
             PendingIntent.getBroadcast(
                 context,

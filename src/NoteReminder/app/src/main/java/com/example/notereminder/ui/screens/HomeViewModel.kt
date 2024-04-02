@@ -1,16 +1,22 @@
 package com.example.notereminder.ui.screens
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notereminder.data.NoteWithTags
 import com.example.notereminder.data.NotesRepository
+import com.example.notereminder.data.entities.Note
 import com.example.notereminder.data.entities.Tag
+import com.example.notereminder.notification.AndroidAlarmScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() {
+class HomeViewModel(
+    private val scheduler: AndroidAlarmScheduler,
+    private val notesRepository: NotesRepository
+) : ViewModel() {
     /**
      * Holds home ui state. The list of items are retrieved from [NotesRepository] and mapped to
      * [HomeUiState]
@@ -77,10 +83,18 @@ class HomeViewModel(private val notesRepository: NotesRepository) : ViewModel() 
     fun deleteSelectedNotes() {
         viewModelScope.launch {
             homeUiState.value.selectedNotes.forEach {
+                cancelNotification(it.note)
                 notesRepository.deleteNoteWithTags(it)
             }
             exitMultiSelectMode()
         }
+    }
+
+    /**
+     * cancel scheduled notification
+     */
+    private fun cancelNotification(note: Note) {
+        note.let(scheduler::cancel)
     }
 
     /**

@@ -178,10 +178,16 @@ class NoteDetailViewMode(
         }
     }
 
+    /**
+     * schedule new notification
+     */
     private fun scheduleNotification() {
         noteDetailUiState.noteWithTags.note.let(scheduler::schedule)
     }
 
+    /**
+     * cancel scheduled notification
+     */
     private fun cancelNotification() {
         noteDetailUiState.noteWithTags.note.let(scheduler::cancel)
     }

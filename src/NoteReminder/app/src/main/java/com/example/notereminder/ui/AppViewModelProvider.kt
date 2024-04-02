@@ -19,6 +19,7 @@ object AppViewModelProvider {
         // Initializer for HomeViewModel
         initializer {
             HomeViewModel(
+                noteReminderApplication().scheduler,
                 noteReminderApplication().container.notesRepository
             )
         }
