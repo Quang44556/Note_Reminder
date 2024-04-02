@@ -71,7 +71,6 @@ import java.util.Date
 object NoteDetailDestination : NavigationDestination {
     override val route = "note_detail"
     const val ITEM_ID_ARG = "itemId"
-    val routeWithArgs = "$route/{$ITEM_ID_ARG}"
 }
 
 fun mToast(message: String, context: Context) {

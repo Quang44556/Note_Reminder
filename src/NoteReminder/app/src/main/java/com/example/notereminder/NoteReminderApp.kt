@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.notereminder.ui.screens.HomeDestination
 import com.example.notereminder.ui.screens.HomeScreen
 import com.example.notereminder.ui.screens.NoteDetailDestination
@@ -31,7 +32,7 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
-    NavHost(
+        NavHost(
         navController = navController,
         startDestination = HomeDestination.route,
         modifier = modifier
@@ -44,9 +45,12 @@ fun AppNavHost(
             )
         }
         composable(
-            route = NoteDetailDestination.routeWithArgs,
+            route = "${NoteDetailDestination.route}/{${NoteDetailDestination.ITEM_ID_ARG}}",
             arguments = listOf(navArgument(NoteDetailDestination.ITEM_ID_ARG) {
                 type = NavType.IntType
+            }),
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "$URI${NoteDetailDestination.route}/{${NoteDetailDestination.ITEM_ID_ARG}}"
             })
         ) {
             NoteDetailScreen(
@@ -54,7 +58,9 @@ fun AppNavHost(
                 navigateBack = { navController.navigateUp() },
             )
         }
-        composable(route = SearchDestination.route) {
+
+        composable(
+            route = SearchDestination.route) {
             SearchScreen(
                 modifier = Modifier,
                 navigateBack = { navController.navigateUp() },

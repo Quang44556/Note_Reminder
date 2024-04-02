@@ -18,7 +18,7 @@ class AlarmReceiver : BroadcastReceiver() {
             notificationService?.showBasicNotification(
                 id = id,
                 title = title,
-                content = content
+                content = content,
             )
         }
     }
