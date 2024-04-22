@@ -9,6 +9,8 @@ This is an android application that allows users to quickly create notes, set re
 - Bookmark important notes for easy access
 - Set reminder for notes and receive timely notifications
 
-Demo: https://youtu.be/YtGHsCq9fYk
+## Demo
+https://github.com/TTBQuang/Note_Reminder/assets/87598136/48af8862-1acb-43e2-89cd-d763fce79e09
+
 
 __Thanks for reading!__
